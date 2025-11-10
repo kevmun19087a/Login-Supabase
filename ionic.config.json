@@ -1,0 +1,7 @@
+{
+  "name": "miSupaLogin",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
