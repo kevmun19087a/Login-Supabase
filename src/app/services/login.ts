@@ -44,4 +44,40 @@ export class SupabaseService {
     const { data } = await this.supabase.auth.getSession();
     return data.session;
   }
+
+  async getMessages() {
+    const { data, error } = await this.supabase
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data;
+  }
+
+  async addMessage(content: string) {
+    const { data } = await this.supabase.auth.getSession();
+    const user = data.session?.user;
+
+    if (!user) throw new Error('Usuario no autenticado');
+
+    const { error } = await this.supabase
+      .from('messages')
+      .insert({
+        content,
+        autor: user.email,
+      });
+
+    if (error) throw error;
+  }
+
+  listenToMessages(callback: (payload: any) => void) {
+    return this.supabase
+      .channel('public:messages')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        payload => callback(payload.new)
+      )
+      .subscribe();
+  }
 }
